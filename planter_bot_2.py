@@ -12,6 +12,7 @@ from pybricks.robotics import DriveBase
 #define sensors
 gyro = GyroSensor(Port.S2)
 sensor = UltrasonicSensor(Port.S1)
+colour = ColorSensor(Port.S3) 
 
 #define motors
 left = Motor(Port.B)
@@ -19,6 +20,25 @@ right = Motor(Port.C)
 robot = DriveBase(left, right, 56, 114)
 
 sun_arm = Motor(Port.D, Direction.CLOCKWISE)
+
+
+def forwardMotion(a):
+    gyro.reset_angle(0)
+    repeatMove = a
+    for x in range(repeatMove):
+        # start the robot driving
+        # use a loop to wait for rotation sensor to reach 720
+        repeatMove -= 1
+        left.reset_angle(0)
+        while left.angle() < 720:
+            if gyro.angle() > 1:
+                robot.drive(200, 20)
+            elif gyro.angle() < -1:
+                robot.drive(200, -20)
+            else:
+                robot.drive (200, 0)        
+    robot.stop(Stop.BRAKE)
+
 
 def left_turn(angle):
     #robot will rotate to specified angle in a counter clockwise direction 
@@ -43,9 +63,11 @@ def right_turn_precise(angle):
     while (gyro.angle() >-angle):
         left.run(100)
         right.run(-100)
-    if (gyro.angle() < - angle):
-        OVERSHOOT = (gyro.angle()-angle)
-        left_turn(OVERSHOOT)
+    overshoot = (gyro.angle() + angle)
+    if (overshoot > 1):
+        left_turn(overshoot)
+    if (overshoot < -1):
+        right_turn(-overshoot)
         
 def left_turn_precise(angle):
     #robot will rotate to specified angle in a counter clockwise direction 
@@ -54,10 +76,28 @@ def left_turn_precise(angle):
     while (gyro.angle() < angle):
         left.run(-100)
         right.run(100)
-    if (gyro.angle() >  angle):
-        OVERSHOOT = (angle-gyro.angle())
-        right_turn(OVERSHOOT)
+    overshoot = (gyro.angle() - angle)
+    print(overshoot)
+    if (overshoot < -1 ):
+        right_turn(overshoot)
+    if (overshoot > 1):
+        left_turn(overshoot)
     
+def grid_walk(dist, n): 
+    for i in range(n):
+        for j in range(n):
+            forwardMotion(dist)
+            wait(1000)
+        if i % 2 == 0:
+            left_turn_precise(90)
+            forwardMotion(1)
+            wait(dist)
+            left_turn_precise(90)
+        else:
+            right_turn_precise(90)
+            forwardMotion(1)
+            wait(dist)
+            right_turn_precise(90)
 
 
 def sun_arm_move_down(angle):
@@ -68,16 +108,28 @@ def sun_arm_move_up(angle):
     sun_arm.reset_angle(0)
     sun_arm.run_target(-10, -angle)
 
+
+
 def sun_test():
+    measurments = []
+    measurement = colour.ambient()
+    measurments.append(measurement)
     for j in range(3):
+        sun_arm_move_down(20)
         for i in range(3):
             #test
             left_turn(120)
             left.run(0)
             right.run(0)
             wait(1000)
-        sun_arm_move_down(20)
+            measurement = colour.ambient()
+            measurments.append(measurement)
     sun_arm_move_up(60)
-    brick.beep(1000,500)
+    f = open('measurements.csv', 'a+')
+    for item in measurments:
+        m_to_write = '%d' % (item) + ', '
+        f.write(m_to_write)
+    f.write('\n')
+    f.close()
 
-sun_test()
+left_turn_precise(90)
