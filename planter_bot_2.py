@@ -63,40 +63,41 @@ def right_turn_precise(angle):
     while (gyro.angle() >-angle):
         left.run(100)
         right.run(-100)
+    left.run(0)
+    right.run(0)
+    wait(200)
     overshoot = (gyro.angle() + angle)
     if (overshoot > 1):
         left_turn(overshoot)
-    if (overshoot < -1):
-        right_turn(-overshoot)
         
 def left_turn_precise(angle):
     #robot will rotate to specified angle in a counter clockwise direction 
     gyro.reset_angle(0)
-
     while (gyro.angle() < angle):
         left.run(-100)
         right.run(100)
+    left.run(0)
+    right.run(0)
+    wait(200)
     overshoot = (gyro.angle() - angle)
     print(overshoot)
-    if (overshoot < -1 ):
-        right_turn(overshoot)
     if (overshoot > 1):
-        left_turn(overshoot)
+        print ("hey")
+        right_turn(overshoot)
     
 def grid_walk(dist, n): 
     for i in range(n):
         for j in range(n):
+            sun_test()
             forwardMotion(dist)
-            wait(1000)
         if i % 2 == 0:
             left_turn_precise(90)
-            forwardMotion(1)
-            wait(dist)
+            forwardMotion(dist)
             left_turn_precise(90)
         else:
             right_turn_precise(90)
-            forwardMotion(1)
-            wait(dist)
+            forwardMotion(dist)
+            wait(1000)
             right_turn_precise(90)
 
 
@@ -114,22 +115,25 @@ def sun_test():
     measurments = []
     measurement = colour.ambient()
     measurments.append(measurement)
-    for j in range(3):
+    for j in range(1):
         sun_arm_move_down(20)
         for i in range(3):
             #test
-            left_turn(120)
+            left_turn_precise(120)
             left.run(0)
             right.run(0)
-            wait(1000)
             measurement = colour.ambient()
             measurments.append(measurement)
-    sun_arm_move_up(60)
+    sun_arm_move_up(20)
     f = open('measurements.csv', 'a+')
     for item in measurments:
         m_to_write = '%d' % (item) + ', '
         f.write(m_to_write)
     f.write('\n')
     f.close()
+
+f = open('meaurements.csv', 'w')
+f.close()
+
 
 left_turn_precise(90)
