@@ -19,7 +19,8 @@ left = Motor(Port.B)
 right = Motor(Port.C)
 robot = DriveBase(left, right, 56, 114)
 
-sun_arm = Motor(Port.D, Direction.CLOCKWISE)
+#sun_arm = Motor(Port.D, Direction.CLOCKWISE)
+picker = Motor(Port.D, Direction.CLOCKWISE)
 
 
 def forwardMotion(a):
@@ -67,8 +68,9 @@ def right_turn_precise(angle):
     right.run(0)
     wait(200)
     overshoot = (gyro.angle() + angle)
-    if (overshoot > 1):
-        left_turn(overshoot)
+    print(overshoot)
+    if (overshoot < -1):
+        left_turn(-overshoot)
         
 def left_turn_precise(angle):
     #robot will rotate to specified angle in a counter clockwise direction 
@@ -82,7 +84,6 @@ def left_turn_precise(angle):
     overshoot = (gyro.angle() - angle)
     print(overshoot)
     if (overshoot > 1):
-        print ("hey")
         right_turn(overshoot)
     
 def grid_walk(dist, n): 
@@ -134,6 +135,16 @@ def sun_test():
 
 f = open('meaurements.csv', 'w')
 f.close()
+def pick_up():
+    picker.run_target(10,-180)
+    left.run(30)
+    right.run(30)
+    wait(200)
+    left.run(0)
+    right.run(0)
+    picker.run_target(10,180)
 
 
-left_turn_precise(90)
+right_turn_precise(90)
+right_turn_precise(90)
+right_turn_precise(90)
